@@ -1,24 +1,30 @@
-package Graficos;
+package graficos;
 
-import Modelo.*;
+import modelo.*;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.time.LocalDateTime;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Toolkit;
 
 public class PantallaCombustible extends JFrame {
 
     private final JTextField litros;
-    private JPanel panel;
 
-
-    public PantallaCombustible(Implementador implementador) {
-
+    public PantallaCombustible(EstacionDeServicio estacionDeServicio) {
+        setIconImage(Toolkit.getDefaultToolkit().getImage("images.png"));
+        setBackground(new Color(205, 92, 92));
         setTitle("Cargar narfta");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setBounds(100, 100, 450, 300);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setResizable(false);
+        setBounds(0, 0, 450, 300);
+        setLocationRelativeTo(null);
         JPanel contentPane = new JPanel();
+        contentPane.setBackground(Color.WHITE);
         contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
         setContentPane(contentPane);
         contentPane.setLayout(null);
@@ -36,41 +42,53 @@ public class PantallaCombustible extends JFrame {
         contentPane.add(litros);
         litros.setColumns(10);
 
-        JComboBox<String> tiposCombustibles = new JComboBox<>();
+        JComboBox<Combustible> tiposCombustibles = new JComboBox<Combustible>();
 
         Combustible combustibleComun = new Comun();
-        tiposCombustibles.addItem(combustibleComun.toString());
+        tiposCombustibles.addItem(combustibleComun);
         Combustible combustibleSuper = new Super();
-        tiposCombustibles.addItem(combustibleSuper.toString());
+        tiposCombustibles.addItem(combustibleSuper);
 
 
         tiposCombustibles.setBounds(207, 97, 195, 22);
         contentPane.add(tiposCombustibles);
 
         JButton btnNewButton = new JButton("CONSULTAR MONTO");
+        btnNewButton.setFont(new Font("Arial Rounded MT Bold", Font.PLAIN, 13));
+        btnNewButton.setForeground(Color.WHITE);
+        btnNewButton.setBackground(new Color(204, 102, 102));
         btnNewButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
+                try {
+                    double total =
+                            estacionDeServicio.calcularMontoDeLaVenta(LocalDateTime.now(), litros.getText(),
+                                    (Combustible) tiposCombustibles.getSelectedItem());
+                    JOptionPane.showMessageDialog(null, "Monto a pagar: $" + total);
+                } catch (RuntimeException ex) {
+                    JOptionPane.showMessageDialog(null, ex.getMessage());
+                }
 
-                double total = implementador.CalcularMontoTotal(Double.parseDouble(litros.getText()),
-                        tiposCombustibles.getSelectedIndex() == 0 ? new Comun() : new Super());
-                JOptionPane.showMessageDialog(null, "Monto a pagar: $"+total);
-
- }
+            }
         });
-        btnNewButton.setBounds(12, 182, 165, 25);
+        btnNewButton.setBounds(12, 182, 186, 25);
         contentPane.add(btnNewButton);
 
         JButton btnNewButton_1 = new JButton("CONFIRMAR PAGO");
+        btnNewButton_1.setBackground(new Color(204, 102, 102));
+        btnNewButton_1.setForeground(Color.WHITE);
+        btnNewButton_1.setFont(new Font("Arial Rounded MT Bold", Font.PLAIN, 13));
         btnNewButton_1.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 try {
                     int eleccion = JOptionPane.showConfirmDialog(null, "¿Desea confirmar el pago?");
                     if (eleccion == JOptionPane.YES_OPTION) {
-                        implementador.registrarUnaVenta(LocalDateTime.now(), litros.getText(),
-                                tiposCombustibles.getSelectedIndex() == 0 ? new Comun() : new Super());
+                        estacionDeServicio.agregarVenta(LocalDateTime.now(),
+                                litros.getText(), (Combustible) tiposCombustibles.getSelectedItem());
                         JOptionPane.showMessageDialog(null, "Se regitro la venta correctamente.");
+
                     }
-                }catch(RuntimeException ex){
+
+                } catch (RuntimeException ex) {
                     JOptionPane.showMessageDialog(null, ex.getMessage());
                 }
 
@@ -79,8 +97,6 @@ public class PantallaCombustible extends JFrame {
         btnNewButton_1.setBounds(225, 182, 177, 25);
         contentPane.add(btnNewButton_1);
     }
-
-
 
 }
 
